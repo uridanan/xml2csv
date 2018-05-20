@@ -39,154 +39,74 @@ class folder(object):
 
 
 #-----------------------------------------------------------------------------------------------------------------------
-def loadXML(filename):
-    tree = ET.parse(filename)
-    root = tree.getroot()
-    return root
-
-
-def printAttribute(elem, a):
-    return a + "=" + elem.attrib[a]
-
-
-def getAttributes(e):
-    attributes = ""
-    for a in e.attrib:
-        attributes = attributes + printAttribute(e,a) + ":"
-    return attributes.rstrip(":")
-
-
-def stripNewLine(s):
-    if (s == None):
-        return ""
-    return s.replace("\n","")
-
-
-def isEmpty(t):
-    if(t == None):
-        return True
-    return stripNewLine(t).strip() == ""
-
-
-def hasText(e):
-    if(isEmpty(e.text)):
-        return False
-    return True
-
-
-def getInnerText(e):
-    # t = ET.tostring(e, "us-ascii", "text").decode()
-    return "".join(e.itertext())
-
-
-def getCleanText(e):
-    t = ""
-    if(hasText(e)):
-        t = getInnerText(e)
-    return stripNewLine(t)
-
-
-def getEntry(tag,text,attributes):
-    entry = ",".join([tag,text,attributes])
-    return entry
-
-
-def printElement(o, e):
-    tag = stripNewLine(e.tag)
-    text = getCleanText(e)
-    attrib = getAttributes(e)
-    printRow(o, getEntry(tag,text,attrib))
-
-
-def getHeaders():
-    return ",".join(["TAG","TEXT","ATTRIBUTES"])
-
-
-def iterateElements(o, r):
-    for e in r.iter():
-        if(hasText(e)):
-            printElement(o, e)
-
-
-def traverseElem(e):
-    printElement(e)
-    for subElem in e:
-        traverseElem(subElem)
-
-
-def writeln(file, string):
-    file.write(string)
-    file.write('\n')
-
-
-def printRow(output, row):
-    print(row)
-    if (output != None):
-        writeln(output,row)
-
-
-def xml2csv(xml, csv):
-    #Open output file
-    f = open(csv, 'wt')
-
-    #Load input file
-    root = loadXML(xml)
-
-    try:
-        #Write headers
-        printRow(f,getHeaders())
-
-        #Traverse XML tree
-        iterateElements(f, root)
-
-    except Exception as err:
-        print(err)
-    finally:
-        f.close()
-#-----------------------------------------------------------------------------------------------------------------------
-
-#Convert all xml / dita files in local folder
-def run():
-    files = folder(".").getDITAFiles()
-    print(files)
-    for f in files:
-        xml2csv(f,f+".csv")
-
-
-def main():
-    run()
-    #xml2csv("CalculatingTime.dita","CalculatingTime.csv")
-
-
-main()
-
-
-#-----------------------------------------------------------------------------------------------------------------------
 class myString(object):
     s = ""
 
     def __init__(self, s):
         self.s = s
 
+    def get(self):
+        return self.s
 
-    @staticmethod
-    def stripNewLine(s):
-        if (s == None):
+
+    def stripNewLine(self):
+        if (self.s == None):
             return ""
-        return s.replace("\n", "")
+        return self.s.replace("\n", "")
 
-    @staticmethod
-    def isEmpty(t):
-        if (t == None):
+    def isEmpty(self):
+        if (self.s == None):
             return True
-        return stripNewLine(t).strip() == ""
+        return self.stripNewLine().strip() == ""
 
-    @staticmethod
-    def hasText(e):
-        if (isEmpty(e.text)):
+#-----------------------------------------------------------------------------------------------------------------------
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+class myElement(object):
+    e= None
+
+    def __init__(self,e):
+        self.e = e
+
+    def get(self):
+        return self.e
+
+
+    # -------------------- end --------------------
+
+    def hasText(self):
+        if(myString(self.e.text).isEmpty()):
             return False
         return True
 
+    def getInnerText(self):
+        # t = ET.tostring(e, "us-ascii", "text").decode()
+        return "".join(self.e.itertext())
+
+    def getCleanText(self):
+        t = ""
+        if(self.hasText()):
+            t = self.getInnerText()
+        return myString(t).stripNewLine()
+
+
+    def getKeyValuePair(self,a):
+        return "=".join([a,self.e.attrib[a]])
+
+
+    def getAttributes(self):
+        attributes = []
+        for a in self.e.attrib:
+            attributes.append(self.getKeyValuePair(a))
+        return ":".join(attributes)
+
+
+    def getEntry(self):
+        tag = myString(self.e.tag).stripNewLine()
+        text = self.getCleanText()
+        attrib = self.getAttributes()
+        return ",".join([tag,text,attrib])
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -204,97 +124,13 @@ class xmlFile(object):
         self.load()
 
 
+    def load(self):
+        self.root = self.loadXML(self.inputFile)
+
+
     @staticmethod
     def loadXML(filename):
         return ET.parse(filename).getroot()
-
-
-    def load(self):
-        self.root = loadXML(self.inputFile)
-
-
-    @staticmethod
-    def xml2csv(xml, csv):
-        # Open output file
-        f = open(csv, 'wt')
-
-        # Load input file
-        root = loadXML(xml)
-
-        try:
-            # Write headers
-            printRow(f, getHeaders())
-
-            # Traverse XML tree
-            iterateElements(f, root)
-
-        except Exception as err:
-            print(err)
-        finally:
-            f.close()
-
-
-    def toCSV(self):
-        # Open output file
-        outputFile = self.inputFile + ".csv"
-        self.output = open(outputFile, 'wt')
-
-        try:
-            # Write headers
-            printRow(self.output, getHeaders())
-
-            # Traverse XML tree
-            iterateElements(self.output, self.root)
-
-        except Exception as err:
-            print(err)
-            self.output = None
-        finally:
-            self.output.close()
-            self.output = None
-
-
-    def printAttribute(elem, a):
-        return a + "=" + elem.attrib[a]
-
-    def getAttributes(e):
-        attributes = ""
-        for a in e.attrib:
-            attributes = attributes + printAttribute(e, a) + ":"
-        return attributes.rstrip(":")
-
-
-
-    def getInnerText(e):
-        # t = ET.tostring(e, "us-ascii", "text").decode()
-        return "".join(e.itertext())
-
-    def getCleanText(e):
-        t = ""
-        if (hasText(e)):
-            t = getInnerText(e)
-        return stripNewLine(t)
-
-    def getEntry(tag, text, attributes):
-        entry = ",".join([tag, text, attributes])
-        return entry
-
-    def printElement(o, e):
-        tag = stripNewLine(e.tag)
-        text = getCleanText(e)
-        attrib = getAttributes(e)
-        printRow(o, getEntry(tag, text, attrib))
-
-
-    @staticmethod
-    def getHeaders():
-        return ",".join(["TAG", "TEXT", "ATTRIBUTES"])
-
-
-    def iterateElements(o, r):
-        for e in r.iter():
-            if (hasText(e)):
-                printElement(o, e)
 
 
     @staticmethod
@@ -303,17 +139,67 @@ class xmlFile(object):
         file.write('\n')
 
 
+    @staticmethod
+    def getHeaders():
+        return ",".join(["TAG", "TEXT", "ATTRIBUTES"])
+
+
     def printRow(self, row):
         print(row)
         if (self.output != None):
-            writeln(self.output, row)
+            self.writeln(self.output, row)
+
+
+    def iterateElements(self):
+        for e in self.root.iter():
+            me = myElement(e)
+            if (me.hasText()):
+                self.printRow(me.getEntry())
+
+
+    def toCSV(self):
+        # Open output file
+        outputFile = self.inputFile + ".csv"
+        self.output = open(outputFile, 'wt')
+
+        try:
+
+            print("==> open " + outputFile)
+
+            # Write headers
+            self.printRow(self.getHeaders())
+
+            # Traverse XML tree
+            self.iterateElements()
+
+            print("==> close " + outputFile)
+
+        except Exception as err:
+            print(err)
+        finally:
+            self.output.close()
+            self.output = None
 
 #-----------------------------------------------------------------------------------------------------------------------
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+
+#Convert all xml / dita files in local folder
+def convertFolder(path):
+    files = folder(path).getDITAFiles()
+    print(files)
+    for f in files:
+        xmlFile(f).toCSV()
+
+
+def main():
+    convertFolder(".")
+
+
+main()
+
+
+
 #TODO
-#1. XML 2 CSV with console printout -- done
-#2. convert all files in folder -- done
-#3. uses classes to encapsulate
-#4. refactor printAttributes
 #4. documentation + README to share on github
