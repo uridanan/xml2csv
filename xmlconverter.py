@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import csv
+import sys
 from os import walk
 
 
@@ -205,8 +206,14 @@ def convertFolder(path):
 
 
 def main():
-    # Convert all xml / dita files in local folder
-    convertFolder("Dita")
+
+    #parse command line arguments
+    if(len(sys.argv) < 2):
+        convertFolder(".")
+    else:
+        for folder in sys.argv[1:len(sys.argv)]:
+            # Convert all xml / dita files in input folder
+            convertFolder(folder)
 
 
 main()

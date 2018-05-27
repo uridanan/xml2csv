@@ -1,1 +1,1 @@
-loadXML.py > out.csv
+xmlconverter.py Dita
