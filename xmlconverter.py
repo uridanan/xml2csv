@@ -198,15 +198,15 @@ class xmlFile(object):
 #Convert all xml / dita files in a given folder
 def convertFolder(path):
     #files = folder(path).getDITAFiles()
-    files = folder(path).getFilesByExtension([".dita",".xml"])
+    files = folder(path).getFilesByExtension([".dita",".xml",".html"])
     print(files)
     for f in files:
-        xmlFile(f).toCSV()
+        xmlFile(path + "/" + f).toCSV()
 
 
 def main():
     # Convert all xml / dita files in local folder
-    convertFolder(".")
+    convertFolder("Dita")
 
 
 main()
